@@ -1,0 +1,6 @@
+*.npy
+*.png
+*.jpg
+*.jpeg
+*.py~
+*/__pycache__/*
