@@ -9,6 +9,9 @@ from matplotlib import pyplot as plt
 DOODLE_PATH = 'downloads/full_numpy_bitmap_'
 DOODLE_NUMPY_PATH = 'downloads/resized_numpy_'
 def process_doodles(categories, d_w, d_h):
+    '''
+    invert and resize doodles into specified dims and save to DOODLE_NUMPY_PATH
+    '''
     doodle_files = []
     for c in categories:
         image = np.load(DOODLE_PATH + c + '.npy')
@@ -26,6 +29,9 @@ def process_doodles(categories, d_w, d_h):
 IMG_PATH = 'google-images-download/downloads/'
 IMG_NUMPY_PATH = 'downloads/resized_numpy_'
 def process_images(categories, img_w, img_h):
+    '''
+    resize images into specified dims and save to IMG_NUMPY_PATH
+    '''
     img_files = []
     for c in categories:
         full = []
@@ -41,6 +47,9 @@ def process_images(categories, img_w, img_h):
     return img_files
 
 def create_features(categories, zero, num_labels):
+    '''
+    randomly pair images with doodles and label based on matching or not
+    '''
     aug = []
     img_dic = {}
     doodle_dic = {}
@@ -86,9 +95,10 @@ def create_features(categories, zero, num_labels):
 
 # image size (img_w, img_h), doodle size (d_w, d_h), # of labels, -1/0 for y
 # categories = {'apple', 'bear', 'tree'} list of strings
-def generate_features(categories, img_w, img_h, d_w, d_h, num_labels, zero):
+def main(categories, img_w, img_h, d_w, d_h, num_labels, zero):
     doodle_files = process_doodles(categories, d_w, d_h)
     img_files = process_images(categories, img_w, img_h)
     X, y = create_features(categories, zero, num_labels)
 
-generate_features({'apple', 'bear', 'airplane'}, 14, 14, 14, 14, 10, True)
+if __name__=='__main__':
+    main({'apple', 'bear', 'airplane'}, 14, 14, 14, 14, 10, True)
