@@ -1,8 +1,12 @@
-from google_images_download import google_images_download
 from pathlib import Path
 import traceback
+import numpy as np
+import random
+from tqdm import tqdm
 
-from util.data_paths import *
+from google_images_download import google_images_download
+
+from util.constants import *
 
 def download_images(n_imgs=15):
     '''
@@ -19,7 +23,7 @@ def download_images(n_imgs=15):
     if not out_path.is_dir():
         out_path.mkdir(parents=True)
     # iterate over doodles we have and populate directories of images
-    for f_doodle in doodle_dir.iterdir():
+    for f_doodle in tqdm(doodle_dir.iterdir()):
         doodle_class = f_doodle.stem
         img_class_path = out_path/doodle_class
         # check if images downloaded already -- if so, continue to next class
@@ -31,29 +35,45 @@ def download_images(n_imgs=15):
             n_retries = 0
             while n_retries < max_retries and len(downloaded_imgs()) <= 0:
                 ggl_img_resp.download({
-                    'keywords': doodle_class,
+                    'keywords': classname_to_keyword(doodle_class),
                     'limit': n_imgs,
                     'type': 'photo',
                     'output_directory': str(img_class_path),
-                    'no_directory': True
+                    'no_directory': True,
+                    'silent_mode': True
                 })
                 n_retries += 1
         except:
             print('failed to download ' + doodle_class)
             traceback.print_exc()
 
-def download_doodles(save_path):
-    '''
-    (going to attempt to do this automatically rather than having to download each set of doodles separately)
-    '''
-    pass
-
-def test_val_split(imgs_dir, outfile, split=.2):
+def test_train_split(outfile='test_train_split.npy', split=40):
     '''
     randomly selects `split` fraction of classes to be reserved for test => outputs list of test 
-    classes to `outfile`
+    classes to `outfile` (placed inside preprocessing/data directory)
     '''
-    pass
+    outfile = DATA_PATH+outfile
+    if Path(outfile).is_file():
+        return np.load(outfile, allow_pickle=True).item()
+    else:
+        if split < 1:
+            split *= N_IMG_CLASSES
+        classes = [i.stem for i in Path(IMG_PATH).glob('*') if i != Path(PROCESSED_IMG_PATH)]
+        random.shuffle(classes)
+        classes_split = {
+            'test': classes[:split],
+            'train': classes[split:]
+        }
+        np.save(outfile, classes_split)
+        return classes_split
+
+def classname_to_keyword(name):
+    '''
+    replace underscores with spaces
+    (files should have no spaces in name, but we want to search with normal words)
+    '''
+    return name.replace("_", " ")
 
 if __name__=='__main__':
     download_images()
+    test_train_split()

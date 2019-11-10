@@ -3,4 +3,10 @@
 *.jpg
 *.jpeg
 *.py~
+*.gif
+*.webp
+*.svg
 */__pycache__/*
+
+# files in above categories not to ignore
+!test_train_split.npy

@@ -6,8 +6,10 @@ import PIL.ImageOps
 import cv2
 from torchvision import transforms
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
-from util.data_paths import *
+from util.constants import *
+from .images_data import test_train_split
 
 def process_doodles(categories, d_w, d_h):
     '''
@@ -19,7 +21,7 @@ def process_doodles(categories, d_w, d_h):
     if not out_path.is_dir():
         out_path.mkdir(parents=True)
     # loop through doodles and preprocess
-    for c in categories:
+    for c in tqdm(categories):
         image = np.load(FULL_DOODLE_PATH + c + '.npy')
         full = []
         for i in range(len(image)):
@@ -42,7 +44,7 @@ def process_images(categories, img_w, img_h):
     if not out_path.is_dir():
         out_path.mkdir(parents=True)
     # loop through images and preprocess
-    for c in categories:
+    for c in tqdm(categories):
         full = []
         for img_file in glob.glob(IMG_PATH + c + '/' + '*.jpg'):
             img = Image.open(img_file).convert('L')
@@ -55,7 +57,7 @@ def process_images(categories, img_w, img_h):
         img_files.append(img_file_name)
     return img_files
 
-def create_features(categories, zero, num_labels):
+def create_bitmap_features(categories, zero, num_labels):
     '''
     randomly pair images with doodles and label based on matching or not
     '''
@@ -74,7 +76,7 @@ def create_features(categories, zero, num_labels):
     
     num_labels_per_example = int(num_labels/float(len(categories)))
     # false labels: (vectorized img + doodle, -1/0)
-    for img_key1 in img_dic.keys():
+    for img_key1 in tqdm(img_dic.keys()):
         img = img_dic[img_key1]
         for img_key2 in img_dic.keys():
             if img_key1 != img_key2:
@@ -89,7 +91,7 @@ def create_features(categories, zero, num_labels):
                         y.append(-1)
 
     # true labels: (vectorized img + doodle, 1) 
-    for img_key in img_dic.keys():
+    for img_key in tqdm(img_dic.keys()):
         img = img_dic[img_key]
         doodle = doodle_dic[img_key]
         r_img = np.random.randint(len(img), size=num_labels)
@@ -105,13 +107,15 @@ def create_features(categories, zero, num_labels):
     np.save(BITMAP_FEATURES + 'y', y)
     return X, y
 
+def create_vgg_features(categories):
+    pass
 
 # image size (img_w, img_h), doodle size (d_w, d_h), # of labels, -1/0 for y
 # categories = {'apple', 'bear', 'tree'} list of strings
 def main(categories, img_w, img_h, d_w, d_h, num_labels, zero):
     doodle_files = process_doodles(categories, d_w, d_h)
     img_files = process_images(categories, img_w, img_h)
-    X, y = create_features(categories, zero, num_labels)
+    X, y = create_bitmap_features(categories, zero, num_labels)
 
 if __name__=='__main__':
-    main({'apple', 'bear', 'airplane'}, 14, 14, 14, 14, 10, True)
+    main(test_train_split()['train'], 14, 14, 14, 14, 10, True)
