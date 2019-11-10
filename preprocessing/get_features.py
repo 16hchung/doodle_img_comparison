@@ -1,4 +1,5 @@
 import glob
+from pathlib import Path
 import numpy as np
 from PIL import Image
 import PIL.ImageOps
@@ -6,33 +7,41 @@ import cv2
 from torchvision import transforms
 from matplotlib import pyplot as plt
 
-DOODLE_PATH = 'downloads/full_numpy_bitmap_'
-DOODLE_NUMPY_PATH = 'downloads/resized_numpy_'
+from util.data_paths import *
+
 def process_doodles(categories, d_w, d_h):
     '''
-    invert and resize doodles into specified dims and save to DOODLE_NUMPY_PATH
+    invert and resize doodles into specified dims and save to PROCESSED_DOODLE_PATH
     '''
     doodle_files = []
+    # add output dir if it doesn't exist
+    out_path = Path(PROCESSED_DOODLE_PATH)
+    if not out_path.is_dir():
+        out_path.mkdir(parents=True)
+    # loop through doodles and preprocess
     for c in categories:
-        image = np.load(DOODLE_PATH + c + '.npy')
+        image = np.load(FULL_DOODLE_PATH + c + '.npy')
         full = []
         for i in range(len(image)):
             im = np.reshape(np.invert(image[i]), (28, 28))
             res = cv2.resize(im, dsize=(d_w, d_h), interpolation=cv2.INTER_CUBIC)
             v = np.reshape(res, (d_w * d_h,))
             full.append(v)
-        doodle_file_name = DOODLE_NUMPY_PATH + c + '.npy'
+        doodle_file_name = PROCESSED_DOODLE_PATH + c + '.npy'
         np.save(doodle_file_name, full)
         doodle_files.append(doodle_file_name)
     return doodle_files
 
-IMG_PATH = 'google-images-download/downloads/'
-IMG_NUMPY_PATH = 'downloads/resized_numpy_'
 def process_images(categories, img_w, img_h):
     '''
-    resize images into specified dims and save to IMG_NUMPY_PATH
+    resize images into specified dims and save to PROCESSED_IMG_PATH
     '''
     img_files = []
+    # add output dir if it doesn't exist
+    out_path = Path(PROCESSED_IMG_PATH)
+    if not out_path.is_dir():
+        out_path.mkdir(parents=True)
+    # loop through images and preprocess
     for c in categories:
         full = []
         for img_file in glob.glob(IMG_PATH + c + '/' + '*.jpg'):
@@ -41,7 +50,7 @@ def process_images(categories, img_w, img_h):
             img_arr = np.array(img_resized, dtype=float)
             v = np.reshape(img_arr, (img_w * img_h,))
             full.append(v)
-        img_file_name = IMG_NUMPY_PATH + c + '.npy'
+        img_file_name = PROCESSED_IMG_PATH + c + '.npy'
         np.save(img_file_name, full)
         img_files.append(img_file_name)
     return img_files
@@ -58,9 +67,9 @@ def create_features(categories, zero, num_labels):
     X = []
     y = []
     for c in categories:
-        img = np.load(IMG_NUMPY_PATH + c + '.npy')
+        img = np.load(PROCESSED_IMG_PATH + c + '.npy')
         img_dic[c] = img
-        doodle = np.load(DOODLE_NUMPY_PATH + c + '.npy')
+        doodle = np.load(PROCESSED_DOODLE_PATH + c + '.npy')
         doodle_dic[c] = doodle
     
     num_labels_per_example = int(num_labels/float(len(categories)))
@@ -87,9 +96,13 @@ def create_features(categories, zero, num_labels):
         r_doodle = np.random.randint(len(doodle), size=num_labels)
         for j in range(len(r_img)):
             X.append(np.concatenate((img[r_img[j]], doodle[r_doodle[j]]), axis=None))
-            y.append(1)   
-    np.save('downloads/' + 'X', X)
-    np.save('downloads/' + 'y', y)
+            y.append(1)
+    # add output dir if it doesn't exist
+    out_path = Path(BITMAP_FEATURES)
+    if not out_path.is_dir():
+        out_path.mkdir(parents=True)
+    np.save(BITMAP_FEATURES + 'X', X)
+    np.save(BITMAP_FEATURES + 'y', y)
     return X, y
 
 
