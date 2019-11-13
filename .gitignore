@@ -6,7 +6,8 @@
 *.gif
 *.webp
 *.svg
-*/__pycache__/*
+**/__pycache__/*
+*.pkl
 
 # files in above categories not to ignore
 !test_train_split.npy

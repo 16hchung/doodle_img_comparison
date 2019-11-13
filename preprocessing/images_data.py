@@ -47,18 +47,19 @@ def download_images(n_imgs=15):
             print('failed to download ' + doodle_class)
             traceback.print_exc()
 
-def test_train_split(outfile='test_train_split.npy', split=40):
+def test_train_split(classes=None, outfile='test_train_split.npy', split=40):
     '''
     randomly selects `split` fraction of classes to be reserved for test => outputs list of test 
     classes to `outfile` (placed inside preprocessing/data directory)
     '''
-    outfile = DATA_PATH+outfile
     if Path(outfile).is_file():
         return np.load(outfile, allow_pickle=True).item()
     else:
         if split < 1:
             split *= N_IMG_CLASSES
-        classes = [i.stem for i in Path(IMG_PATH).glob('*') if i != Path(PROCESSED_IMG_PATH)]
+            split = int(split)
+        if classes==None:
+            classes = [i.stem for i in Path(IMG_PATH).glob('*') if i != Path(PROCESSED_IMG_PATH)]
         random.shuffle(classes)
         classes_split = {
             'test': classes[:split],
