@@ -47,6 +47,7 @@ def download_images(n_imgs=15):
             print('failed to download ' + doodle_class)
             traceback.print_exc()
 
+### OBSOLETE-- doing different split now ######
 def test_train_split(classes=None, outfile='test_train_split.npy', split=40):
     '''
     randomly selects `split` fraction of classes to be reserved for test => outputs list of test 
