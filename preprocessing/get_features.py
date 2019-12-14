@@ -21,6 +21,7 @@ def process_doodles(categories, d_w, d_h):
             res = cv2.resize(im, dsize=(d_w, d_h), interpolation=cv2.INTER_CUBIC)
             v = np.reshape(res, (d_w * d_h,))
             full.append(v)
+        import pdb;pdb.set_trace()
         doodle_file_name = DOODLE_NUMPY_PATH + c + '.npy'
         np.save(doodle_file_name, full)
         doodle_files.append(doodle_file_name)
